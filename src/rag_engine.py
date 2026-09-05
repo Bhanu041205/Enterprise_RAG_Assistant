@@ -80,11 +80,22 @@ print("Chunks loaded:", len(chunks))
 # ============================================================
 
 def get_gemini_client():
-    """Create Gemini client only when generation is requested."""
+    """Create Gemini client using environment variable or Streamlit Secrets."""
+
     import os
 
+    # First try the environment variable.
     api_key = os.environ.get("GEMINI_API_KEY")
 
+    # If not available, try Streamlit Secrets.
+    if not api_key:
+        try:
+            import streamlit as st
+            api_key = st.secrets.get("GEMINI_API_KEY")
+        except Exception:
+            api_key = None
+
+    # Stop if no API key is configured.
     if not api_key:
         raise ValueError(
             "GEMINI_API_KEY is not configured. "
