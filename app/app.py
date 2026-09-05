@@ -1,4 +1,3 @@
-
 import sys
 from pathlib import Path
 
@@ -461,10 +460,8 @@ st.markdown(
 )
 
 
-
-
-
-
+# ============================================================
+# SOURCE RENDERING
 # ============================================================
 
 def render_sources(message):
@@ -476,50 +473,77 @@ def render_sources(message):
     if not sources:
         return
 
-    st.html("""
-    <div style="
-        margin-top: 12px;
-        margin-bottom: 8px;
-        font-size: 15px;
-        font-weight: 700;
-    ">
-        📚 Sources
-    </div>
-    """)
+    st.html(
+        """
+        <div style="
+            margin-top: 12px;
+            margin-bottom: 8px;
+            font-size: 15px;
+            font-weight: 700;
+        ">
+            📚 Sources
+        </div>
+        """
+    )
 
     for source in sources:
-        document = source.get("document", "Unknown document")
-        chunk_id = source.get("chunk_id", "N/A")
-        score = float(source.get("score", 0))
 
-        st.html(f"""
-        <div class="source-card">
-            <div class="source-item">
-                <div>
-                    <strong>📄 {document}</strong>
+        document = source.get(
+            "document",
+            "Unknown document"
+        )
+
+        chunk_id = source.get(
+            "chunk_id",
+            "N/A"
+        )
+
+        score = float(
+            source.get(
+                "score",
+                0
+            )
+        )
+
+        st.html(
+            f"""
+            <div class="source-card">
+
+                <div class="source-item">
+
+                    <div>
+                        <strong>📄 {document}</strong>
+                    </div>
+
+                    <div style="margin-top: 5px;">
+                        <span>Chunk: {chunk_id}</span>
+                    </div>
+
+                    <div style="margin-top: 3px;">
+                        <span>Relevance: {score:.2f}</span>
+                    </div>
+
                 </div>
-                <div style="margin-top: 5px;">
-                    <span>Chunk: {chunk_id}</span>
-                </div>
-                <div style="margin-top: 3px;">
-                    <span>Relevance: {score:.2f}</span>
-                </div>
+
             </div>
+            """
+        )
+
+    st.html(
+        f"""
+        <div style="
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            opacity: 0.65;
+        ">
+            Retrieved passages: {retrieved_count}
         </div>
-        """)
-
-    st.html(f"""
-    <div style="
-        margin-top: 5px;
-        margin-bottom: 15px;
-        font-size: 12px;
-        opacity: 0.65;
-    ">
-        Retrieved passages: {retrieved_count}
-    </div>
-    """)
+        """
+    )
 
 
+# ============================================================
 # SESSION STATE
 # ============================================================
 
@@ -615,7 +639,11 @@ DOCUMENTS = {
 # DOCUMENT DIRECTORY
 # ============================================================
 
-DOCUMENTS_DIR = Path(__file__).resolve().parent.parent / "Data" / "documents"
+DOCUMENTS_DIR = (
+    Path(__file__).resolve().parent.parent
+    / "Data"
+    / "documents"
+)
 
 
 # ============================================================
@@ -678,74 +706,80 @@ with st.sidebar:
     # BRAND
     # --------------------------------------------------------
 
-    st.html("""
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:14px;
-    ">
-
+    st.html(
+        """
         <div style="
-            width:55px;
-            height:55px;
-            border-radius:17px;
             display:flex;
             align-items:center;
-            justify-content:center;
-            font-size:27px;
-            background:linear-gradient(
-                135deg,
-                #6366f1,
-                #06b6d4
-            );
+            gap:14px;
         ">
-            🤖
-        </div>
 
-        <div>
-
-            <div class="sidebar-title">
-                TechNova AI
+            <div style="
+                width:55px;
+                height:55px;
+                border-radius:17px;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:27px;
+                background:linear-gradient(
+                    135deg,
+                    #6366f1,
+                    #06b6d4
+                );
+            ">
+                🤖
             </div>
 
-            <div class="sidebar-subtitle">
-                Enterprise Knowledge Assistant
+            <div>
+
+                <div class="sidebar-title">
+                    TechNova AI
+                </div>
+
+                <div class="sidebar-subtitle">
+                    Enterprise Knowledge Assistant
+                </div>
+
             </div>
 
         </div>
-
-    </div>
-    """)
+        """
+    )
 
 
     # --------------------------------------------------------
     # SYSTEM STATUS
     # --------------------------------------------------------
 
-    st.html("""
-    <div class="status-card">
+    st.html(
+        """
+        <div class="status-card">
 
-        <div class="status-label">
-            SYSTEM STATUS
+            <div class="status-label">
+                SYSTEM STATUS
+            </div>
+
+            <div class="status-value">
+                🟢 AI system online
+            </div>
+
         </div>
-
-        <div class="status-value">
-            🟢 AI system online
-        </div>
-
-    </div>
-    """)
+        """
+    )
 
 
     # --------------------------------------------------------
     # KNOWLEDGE BASE
     # --------------------------------------------------------
 
-    st.html("""
-    <div class="sidebar-heading">
-        Knowledge Base
-    </div>
-    """)
+    st.html(
+        """
+        <div class="sidebar-heading">
+            Knowledge Base
+        </div>
+        """
+    )
 
 
     # --------------------------------------------------------
@@ -772,7 +806,6 @@ with st.sidebar:
                 f"{document['icon']}  "
                 f"{document['name']}"
             )
-
 
         if st.button(
             label,
@@ -820,11 +853,13 @@ with st.sidebar:
     # ASSISTANT CAPABILITIES
     # --------------------------------------------------------
 
-    st.html("""
-    <div class="sidebar-heading">
-        Assistant Capabilities
-    </div>
-    """)
+    st.html(
+        """
+        <div class="sidebar-heading">
+            Assistant Capabilities
+        </div>
+        """
+    )
 
     st.markdown(
         "🔎 Semantic document search"
@@ -1067,53 +1102,8 @@ if selected_info is not None:
             # ------------------------------------------------
             # DISPLAY SOURCES FOR THIS AI RESPONSE
             # ------------------------------------------------
+
             render_sources(message)
-
-
-            # =================================================
-            # DISPLAY SOURCES
-            # =================================================
-
-            sources = message.get(
-                "sources",
-                []
-            )
-
-            if sources:
-
-                st.markdown(
-                    "##### 📚 Sources"
-                )
-
-                for source_index, source in enumerate(
-                    sources,
-                    start=1
-                ):
-
-                    document_name = source.get(
-                        "document",
-                        "Unknown document"
-                    )
-
-                    chunk_id = source.get(
-                        "chunk_id",
-                        "Unknown chunk"
-                    )
-
-                    score = source.get(
-                        "score",
-                        0
-                    )
-
-                    st.markdown(
-                        f"""
-                        **{source_index}. 📄 {document_name}**
-
-                        `Chunk: {chunk_id}`
-
-                        `Relevance: {score:.4f}`
-                        """
-                    )
 
 
     # ========================================================
@@ -1319,53 +1309,12 @@ else:
             # ------------------------------------------------
             # DISPLAY SOURCES FOR THIS AI RESPONSE
             # ------------------------------------------------
+
+            # IMPORTANT:
+            # This is the ONLY source rendering call.
+            # The old duplicate source block was removed.
+
             render_sources(message)
-
-
-            # =================================================
-            # DISPLAY SOURCES
-            # =================================================
-
-            sources = message.get(
-                "sources",
-                []
-            )
-
-            if sources:
-
-                st.markdown(
-                    "##### 📚 Sources"
-                )
-
-                for source_index, source in enumerate(
-                    sources,
-                    start=1
-                ):
-
-                    document_name = source.get(
-                        "document",
-                        "Unknown document"
-                    )
-
-                    chunk_id = source.get(
-                        "chunk_id",
-                        "Unknown chunk"
-                    )
-
-                    score = source.get(
-                        "score",
-                        0
-                    )
-
-                    st.markdown(
-                        f"""
-                        **{source_index}. 📄 {document_name}**
-
-                        `Chunk: {chunk_id}`
-
-                        `Relevance: {score:.4f}`
-                        """
-                    )
 
 
     # ========================================================
