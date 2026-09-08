@@ -1,8 +1,8 @@
 # 🧠 Enterprise RAG Assistant
 
-An AI-powered Enterprise Retrieval-Augmented Generation (RAG) Assistant designed to answer questions from internal organizational documents.
+An AI-powered **Enterprise Retrieval-Augmented Generation (RAG) Assistant** designed to answer questions from internal organizational documents.
 
-The system retrieves relevant information from company documents and uses Google Gemini to generate grounded answers based only on retrieved company knowledge.
+The system retrieves relevant information from company policies and standard operating procedures and uses **Google Gemini** to generate grounded responses based only on the retrieved company knowledge.
 
 ---
 
@@ -10,138 +10,340 @@ The system retrieves relevant information from company documents and uses Google
 
 **TechNova Solutions**
 
-The project uses internal company policies and standard operating procedures as its knowledge base.
+The knowledge base consists of internal organizational policies, procedures, and standard operating documents.
 
 ---
 
-## 🎯 Objective
+## 🎯 Business Problem
 
-The objective is to build an intelligent enterprise assistant that allows employees to quickly search and understand internal company policies and procedures using natural-language questions.
+Organizations often maintain important policies and procedures across multiple documents. Employees may need to manually search through these documents to find information about leave, attendance, security, travel, procurement, and other workplace policies.
 
-Instead of manually searching through multiple documents, users can ask questions directly to the AI assistant.
+This project addresses that problem by providing a natural-language question-answering system that allows employees to ask questions directly and receive answers supported by the relevant company documents.
+
+---
+
+## 🎯 Project Objective
+
+The objective of this project is to develop an enterprise document intelligence assistant that:
+
+* Processes organizational documents.
+* Extracts and cleans document text.
+* Splits documents into searchable chunks.
+* Generates semantic embeddings.
+* Stores embeddings in a FAISS vector index.
+* Retrieves relevant information for user questions.
+* Uses Google Gemini to generate grounded answers.
+* Displays source documents and relevance scores.
+* Reduces unsupported answers through retrieval-based grounding.
+* Evaluates retrieval and answer quality using a 150-question evaluation dataset.
 
 ---
 
 ## ✨ Key Features
 
-- 🤖 AI-powered question answering
-- 📚 Retrieval-Augmented Generation (RAG)
-- 🔎 Semantic document search
-- 🧠 Sentence Transformer embeddings
-- ⚡ FAISS vector similarity search
-- 💬 Google Gemini response generation
-- 📄 Multiple DOCX company documents
-- 🗂️ Document-specific pages
-- 📚 Source cards with retrieved documents
-- 📊 Relevance scores
-- 🎨 Streamlit web interface
+* 🤖 AI-powered question answering
+* 📚 Retrieval-Augmented Generation (RAG)
+* 📄 DOCX document processing
+* 🔎 Semantic document retrieval
+* 🧠 Sentence Transformer embeddings
+* ⚡ FAISS vector similarity search
+* 🎯 Top-K retrieval
+* 📊 Similarity/relevance scores
+* 🛡️ Grounded answer generation
+* 🚫 Unanswerable-question handling
+* 📑 Source attribution
+* 🗂️ Document-specific filtering
+* 💬 Google Gemini LLM integration
+* 🎨 Streamlit web interface
+* 📊 150-question RAG evaluation
+* 🧪 Chunking strategy experiment
+* ☁️ Streamlit Community Cloud deployment
 
 ---
 
 ## 🏗️ System Architecture
 
+![TechNova Enterprise RAG Architecture](docs/architecture_diagram.png)
+
+The system consists of two major pipelines: an **offline document indexing pipeline** and an **online question-answering pipeline**.
+
+### Offline Document Indexing Pipeline
+
 ```text
-Company Documents (.docx)
+Company DOCX Documents
         ↓
 Document Loading
         ↓
-Text Processing / Chunking
+Text Extraction & Cleaning
+        ↓
+Chunking + Metadata
         ↓
 Sentence Transformer
 all-MiniLM-L6-v2
         ↓
-FAISS Vector Index
+Embedding Vectors
         ↓
+FAISS Vector Index
+        +
+Chunk Metadata
+```
+
+### Online Question-Answering Pipeline
+
+```text
 User Question
         ↓
 Query Embedding
+(all-MiniLM-L6-v2)
         ↓
 FAISS Similarity Search
         ↓
-Relevant Context + Sources
+Similarity Threshold
+        ↓
+Top-K Relevant Chunks
+        ↓
+RAG Prompt
         ↓
 Google Gemini
+(gemini-3.5-flash-lite)
         ↓
-Grounded AI Answer + Sources
+Grounded Answer
+        +
+Source Documents
+        +
+Relevance Scores
 ```
 
 ---
 
-## 🔄 RAG Pipeline
+## 📄 Document Processing
 
-### 1. Document Collection
+The document processing pipeline prepares the organizational documents for semantic retrieval.
 
-Company policies and SOP documents are stored as DOCX files.
+The system loads the DOCX documents, extracts their textual content, performs basic text cleaning, and preserves document-level and paragraph-level metadata.
 
-### 2. Document Loading
+The processed text is then passed to the chunking stage, where documents are divided into smaller retrieval units without crossing document boundaries.
 
-Documents are loaded using `python-docx`.
+The complete document processing and indexing workflow is implemented in the project setup notebook:
 
-### 3. Text Processing
-
-Text is extracted and divided into searchable chunks.
-
-### 4. Embedding Generation
-
-Each chunk is converted into a numerical vector using:
-
-`all-MiniLM-L6-v2`
-
-### 5. Vector Storage
-
-The embeddings are stored in a FAISS vector index.
-
-The embedding dimension is **384**.
-
-### 6. User Query
-
-The employee enters a natural-language question.
-
-Example:
-
-`How many annual leave days are provided?`
-
-### 7. Query Embedding
-
-The question is converted into the same embedding space as the document chunks.
-
-### 8. Similarity Search
-
-FAISS searches for semantically relevant document chunks.
-
-### 9. Context Retrieval
-
-The retrieved passages are provided to the language model as context.
-
-### 10. Answer Generation
-
-Google Gemini generates the final response using the retrieved company information.
-
-### 11. Source Display
-
-The application displays:
-
-- Document name
-- Chunk ID
-- Relevance score
-- Retrieved passage count
+```text
+01_project_setup.ipynb
+```
 
 ---
 
-## 🧰 Technologies Used
+## ✂️ Chunking Strategy
 
-| Component | Technology |
-|---|---|
-| Programming Language | Python |
-| Frontend | Streamlit |
-| LLM | Google Gemini |
-| Embeddings | Sentence Transformers |
-| Embedding Model | all-MiniLM-L6-v2 |
-| Vector Store | FAISS |
-| Document Processing | python-docx |
-| Numerical Processing | NumPy |
-| Development | Google Colab / VS Code |
-| Storage | Google Drive |
+The documents are processed separately to ensure that chunks never cross document boundaries.
+
+A **word-aware chunking strategy** is used with a target chunk size of approximately **500 characters**. To preserve contextual continuity between adjacent chunks, the implementation retains an overlap of approximately **20 words** from the previous chunk.
+
+Each chunk also preserves its associated document name and paragraph metadata.
+
+### Production Chunking Configuration
+
+| Parameter         | Value                         |
+| ----------------- | ----------------------------- |
+| Target chunk size | ~500 characters               |
+| Overlap           | ~20 words                     |
+| Chunking method   | Word-aware                    |
+| Document boundary | Preserved                     |
+| Metadata          | Document name + paragraph IDs |
+
+### Chunking Experiment
+
+Three chunk configurations were experimentally compared:
+
+| Chunk Size | Overlap | Total Chunks | Average Length |
+| ---------: | ------: | -----------: | -------------: |
+|        300 |      50 |           37 |         274.62 |
+|        500 |     100 |           24 |         429.88 |
+|        700 |     150 |           17 |         592.47 |
+
+The **500-character configuration** provides a practical balance between retrieval granularity and contextual information. Smaller chunks provide more granular retrieval but increase the number of chunks, while larger chunks provide more context but may reduce retrieval precision.
+
+The chunking experiment was performed separately and did **not modify the production vector store**.
+
+The experimental comparison uses **character-based chunking configurations** to study the effect of chunk size and overlap, while the production pipeline uses the final **word-aware chunking strategy with approximately 20-word overlap** described above.
+
+---
+
+## 🧠 Embeddings
+
+After chunking, each text chunk is converted into a numerical vector representation using a **Sentence Transformers** embedding model.
+
+The project uses:
+
+**Model:** `all-MiniLM-L6-v2`
+
+This model was selected because it provides a practical balance between semantic representation quality, computational efficiency, and embedding size for a lightweight enterprise document retrieval system.
+
+### Embedding Configuration
+
+| Parameter           | Value                       |
+| ------------------- | --------------------------- |
+| Model               | `all-MiniLM-L6-v2`          |
+| Embedding dimension | 384                         |
+| Framework           | Sentence Transformers       |
+| Input               | Text chunks                 |
+| Output              | Numerical embedding vectors |
+
+The generated embeddings are stored in the FAISS vector index and are used to compare the user's question with the indexed document chunks based on semantic similarity.
+
+---
+
+## 🗄️ Vector Database
+
+The project uses **FAISS (Facebook AI Similarity Search)** as the vector database for efficient semantic retrieval.
+
+The generated embeddings are stored in a FAISS index. When a user submits a question, the question is converted into an embedding and compared against the stored vectors to identify the most semantically relevant document chunks.
+
+### Vector Store Configuration
+
+| Component           | Configuration                                  |
+| ------------------- | ---------------------------------------------- |
+| Vector database     | FAISS                                          |
+| Embedding dimension | 384                                            |
+| Search type         | Similarity search                              |
+| Stored data         | Document chunk embeddings                      |
+| Metadata            | Document name, chunk ID, paragraph information |
+
+FAISS enables fast similarity-based retrieval while keeping the system lightweight and suitable for local development and deployment.
+
+---
+
+## 🔎 Retrieval
+
+When a user submits a question, the system converts the question into an embedding using `all-MiniLM-L6-v2` and performs a similarity search against the FAISS vector index.
+
+The system retrieves the most relevant document chunks and applies a similarity threshold before passing the retrieved context to the language model.
+
+### Retrieval Configuration
+
+| Parameter            | Value                                     |
+| -------------------- | ----------------------------------------- |
+| Top-K results        | 3                                         |
+| Similarity threshold | 0.20                                      |
+| Search method        | FAISS similarity search                   |
+| Retrieval unit       | Document chunks                           |
+| Metadata returned    | Document name, chunk ID, similarity score |
+
+Only chunks that meet the configured relevance threshold are considered for answer generation. This helps reduce irrelevant context and supports the system's grounded-answering behavior.
+
+The retrieved document name, chunk ID, and similarity score are also returned as source information to provide transparency to the user.
+
+---
+
+## 🤖 LLM Integration
+
+The retrieved document chunks are provided as context to a Large Language Model (LLM) for final answer generation.
+
+The project uses **Google Gemini** through the Google GenAI SDK.
+
+**Model:** `gemini-3.5-flash-lite`
+
+The LLM receives the user's question together with the relevant retrieved company-document content. It is instructed to answer using only the provided context and to avoid introducing unsupported information.
+
+### LLM Configuration
+
+| Component    | Configuration                     |
+| ------------ | --------------------------------- |
+| LLM Provider | Google Gemini                     |
+| Model        | `gemini-3.5-flash-lite`           |
+| Integration  | Google GenAI SDK                  |
+| Input        | User question + retrieved context |
+| Output       | Grounded natural-language answer  |
+
+The LLM is used only after the retrieval stage, making the system a **Retrieval-Augmented Generation (RAG)** pipeline rather than a standalone generative AI application.
+
+---
+
+## 📝 Prompt Engineering
+
+A structured RAG prompt is used to ensure that the language model generates answers based only on the retrieved company documents.
+
+The prompt provides the model with:
+
+* The user's question
+* Retrieved document context
+* Instructions to use only the provided context
+* Instructions to avoid unsupported information
+* Instructions to clearly state when the required information is not available
+
+### Grounded Answering Rules
+
+The prompt follows these principles:
+
+1. Answer the user's question using only the retrieved company documents.
+2. Do not use external or assumed knowledge to fill missing information.
+3. If the retrieved context does not contain sufficient information, clearly state that the information is not available in the provided company documents.
+4. Do not invent policies, numbers, names, dates, or other organizational information.
+5. Keep the answer relevant to the user's question.
+6. Return the retrieved document sources to support answer transparency.
+
+This prompt design helps reduce hallucinations and keeps generated responses grounded in the organization's indexed knowledge base.
+
+---
+
+## 🛡️ Hallucination Handling
+
+The system is designed to minimize hallucinations by restricting answer generation to information retrieved from the indexed company documents.
+
+If the retrieved context does not contain sufficient information to answer a question, the system does not attempt to generate an unsupported answer. Instead, it returns a clear response indicating that the information is not available in the provided company documents.
+
+### Hallucination Prevention Mechanisms
+
+* Similarity threshold filtering is applied during retrieval.
+* Only retrieved document chunks are provided as context to the LLM.
+* The prompt explicitly prohibits unsupported or external information.
+* Source documents and chunk information are displayed with generated answers.
+* Unanswerable questions are tested as part of the RAG evaluation.
+
+### Unanswerable-Question Evaluation
+
+The evaluation dataset contains **15 intentionally unanswerable questions** covering information that is not present in the company documents.
+
+The system correctly refused to provide unsupported information for:
+
+**15 out of 15 questions (100%)**
+
+This result demonstrates effective handling of questions for which the knowledge base does not contain sufficient information.
+
+---
+
+## 📊 RAG Evaluation
+
+The Enterprise RAG Assistant was evaluated using a **150-question evaluation dataset** designed to measure answer quality, groundedness, completeness, source attribution, and handling of unanswerable questions.
+
+### Evaluation Dataset
+
+| Category               | Questions |
+| ---------------------- | --------: |
+| Answerable questions   |       135 |
+| Unanswerable questions |        15 |
+| **Total questions**    |   **150** |
+
+The evaluation includes questions across the organization's policy documents, including leave, attendance, work from home, travel, IT security, procurement, employee handbook, and acceptable use policies.
+
+### Final Evaluation Results
+
+| Metric                         |       Score |
+| ------------------------------ | ----------: |
+| Source Attribution Accuracy    |  **96.30%** |
+| Answer Correctness             |  **86.44%** |
+| Groundedness                   |  **95.51%** |
+| Completeness                   |  **66.30%** |
+| Unanswerable-Question Handling | **100.00%** |
+
+### Evaluation Analysis
+
+The results demonstrate strong overall retrieval and grounding performance.
+
+* **Source Attribution Accuracy of 96.30%** indicates that the expected source document was retrieved for most answerable questions.
+* **Groundedness of 95.51%** indicates that generated answers are strongly supported by the retrieved company documents.
+* **Answer Correctness of 86.44%** demonstrates good answer quality across the answerable evaluation questions.
+* **Unanswerable-question handling of 100%** shows that the system successfully avoided providing unsupported information for all 15 intentionally unanswerable questions.
+* **Completeness of 66.30%** represents an area for future improvement, potentially through improved retrieval, reranking, chunking strategies, or context selection.
 
 ---
 
@@ -150,209 +352,335 @@ The application displays:
 ```text
 Enterprise_RAG_Assistant/
 │
+├── app/
+│   └── app.py
+│
 ├── Data/
 │   └── documents/
-│       ├── Acceptable_Use_Policy.docx
+│       ├── Leave_Policy.docx
 │       ├── Attendance_Policy.docx
+│       ├── Work_From_Home_Policy.docx
 │       ├── Employee_Handbook.docx
 │       ├── IT_Security_Policy.docx
-│       ├── Leave_Policy.docx
-│       ├── Procurement_SOP.docx
+│       ├── Acceptable_Use_Policy.docx
 │       ├── Travel_Policy.docx
-│       └── Work_From_Home_Policy.docx
+│       └── Procurement_SOP.docx
 │
 ├── src/
 │   └── rag_engine.py
-│
-├── app/
-│   └── app.py
 │
 ├── vectorstore/
 │   ├── tech_nova.index
 │   └── chunks.pkl
 │
+├── evaluation/
+│   ├── RAG_Evaluation_Dataset_150_Questions.csv
+│   ├── RAG_Evaluation_Results_150.csv
+│   ├── RAG_Quality_Evaluation_150.csv
+│   ├── run_evaluation.py
+│   ├── evaluate_quality.py
+│   ├── chunking_experiment.py
+│   └── chunking_experiment_results.csv
+│
+├── docs/
+│   └── architecture_diagram.png
+│
+├── 01_project_setup.ipynb
 ├── requirements.txt
-└── README.md
+├── README.md
+└── .gitignore
 ```
 
 ---
 
-## 📄 Knowledge Base
+## 📚 Document Sources & Reproducibility
 
-The knowledge base currently contains 8 organizational documents:
+The knowledge base consists of eight internal organizational policy and procedure documents created for the TechNova Solutions enterprise RAG demonstration.
 
-1. Acceptable Use Policy
-2. Attendance Policy
-3. Employee Handbook
-4. IT Security Policy
-5. Leave Policy
-6. Procurement SOP
-7. Travel Policy
-8. Work From Home Policy
+### Document Collection
+
+The project includes:
+
+* Leave Policy
+* Attendance Policy
+* Work From Home Policy
+* Employee Handbook
+* IT Security Policy
+* Acceptable Use Policy
+* Travel Policy
+* Procurement SOP
+
+These documents are stored locally in:
+
+```text
+Data/documents/
+```
+
+### Reproducing the Document Index
+
+The document processing and indexing pipeline can be reproduced using:
+
+```text
+01_project_setup.ipynb
+```
+
+The notebook performs the following stages:
+
+```text
+DOCX Documents
+      ↓
+Document Loading
+      ↓
+Text Extraction & Cleaning
+      ↓
+Chunking + Metadata
+      ↓
+Embedding Generation
+      ↓
+FAISS Index Creation
+```
+
+The generated vector store is stored in:
+
+```text
+vectorstore/
+├── tech_nova.index
+└── chunks.pkl
+```
+
+The evaluation scripts can then be executed locally using the generated vector store and the evaluation dataset stored in the `evaluation/` directory.
 
 ---
 
-## 🚀 Installation
+## ⚙️ Installation & Setup
 
-Clone the repository:
+### 1. Clone the Repository
 
 ```bash
-git clone <YOUR_GITHUB_REPOSITORY_URL>
+git clone https://github.com/Bhanu041205/Enterprise_RAG_Assistant.git
 cd Enterprise_RAG_Assistant
 ```
 
-Create a virtual environment:
+### 2. Create a Virtual Environment
 
 ```bash
-python -m venv venv
+python -m venv .venv
 ```
 
-Activate it on Windows:
+Activate the environment on Windows:
 
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 
-Install dependencies:
+### 3. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
----
+### 4. Configure the Gemini API Key
 
-## 🔑 Gemini API Configuration
+For local development, configure the Gemini API key using an environment variable or Streamlit Secrets.
 
-The application requires a Google Gemini API key.
+Do not commit API keys or other credentials to GitHub.
 
-Windows PowerShell:
+For Streamlit deployment, the Gemini API key is configured through **Streamlit Secrets**.
 
-```powershell
-$env:GEMINI_API_KEY="YOUR_API_KEY"
-```
-
-Linux / macOS:
-
-```bash
-export GEMINI_API_KEY="YOUR_API_KEY"
-```
-
-**Never commit the API key to GitHub.**
-
-For deployment platforms, configure the key using environment variables or secret management.
-
----
-
-## ▶️ Run the Application
-
-From the project root:
+### 5. Run the Application
 
 ```bash
 streamlit run app/app.py
 ```
 
----
-
-## 💬 Example Questions
-
-### Leave Policy
-
-`How many annual leave days are provided?`
-
-### Work From Home
-
-`What is the work from home policy?`
-
-### Attendance
-
-`What are the attendance requirements?`
-
-### Travel
-
-`What is the company's travel policy?`
-
-### IT Security
-
-`What are the IT security requirements?`
+The application opens in the local browser and provides the RAG question-answering interface.
 
 ---
 
-## 🔎 Source Transparency
+## 🚀 Deployment
 
-Each generated answer can display its retrieved sources.
+The Enterprise RAG Assistant is deployed using **Streamlit Community Cloud**.
 
-The source information includes:
+### Deployment Configuration
 
-- 📄 Document name
-- 🔹 Chunk ID
-- 📊 Relevance score
-- 📚 Retrieved passage count
+| Component             | Configuration             |
+| --------------------- | ------------------------- |
+| Application framework | Streamlit                 |
+| Deployment platform   | Streamlit Community Cloud |
+| Repository            | GitHub                    |
+| Branch                | `main`                    |
+| Main application      | `app/app.py`              |
+| Python version        | 3.12                      |
+| LLM                   | Google Gemini             |
+| Vector database       | FAISS                     |
 
-This provides traceability between the generated response and the internal company knowledge base.
+### Live Application
+
+The deployed application is available at:
+
+https://enterpriseragassistantgit-8inxv5l2tncvyohrhbeyn8.streamlit.app
+
+The Gemini API key is configured securely using **Streamlit Secrets** and is not stored in the GitHub repository.
+
+The deployed application provides the complete RAG workflow, including document retrieval, grounded answer generation, and source attribution.
 
 ---
 
-## 🛡️ Grounded Answering
+## 📸 Screenshots & Demo
 
-The RAG prompt instructs the language model to answer using retrieved company documents rather than unrelated external knowledge.
+The repository includes application screenshots demonstrating the main RAG workflow and user interface.
 
-If relevant information cannot be found, the system can return:
+Recommended screenshots for the project documentation include:
 
-`This information is not available in the provided company documents.`
+1. Main Streamlit interface
+2. Successful question-answer interaction
+3. Retrieved sources and similarity scores
+4. Unanswerable-question response
+5. Deployed application
 
-This helps reduce unsupported answers and hallucinations.
+Screenshots are stored in the project documentation directory and can be viewed directly from the repository.
 
 ---
 
-## ⚙️ Current Configuration
+## 🔎 Source Attribution & Transparency
 
-```text
-Embedding Model: all-MiniLM-L6-v2
-Embedding Dimension: 384
-Vector Store: FAISS
-LLM: gemini-3.5-flash-lite
-Relevance Threshold: 0.20
-```
+Source attribution is a core feature of the Enterprise RAG Assistant.
+
+For generated answers, the application displays retrieved source information, including:
+
+* Source document name
+* Retrieved chunk ID
+* Similarity/relevance score
+
+This allows users to understand which company documents were used to generate the response and provides greater transparency into the RAG retrieval process.
+
+The system does not present the generated answer as an unexplained response. Instead, the retrieved evidence is shown alongside the answer so that users can verify the information against the original company documents.
+
+Source attribution was also evaluated as part of the RAG evaluation, achieving **96.30% source attribution accuracy on the 135 answerable questions**.
+
+---
+
+## ⚠️ Limitations
+
+Although the Enterprise RAG Assistant provides strong grounded retrieval and answer generation, the current implementation has several limitations:
+
+* The knowledge base is limited to the eight documents included in the project.
+* The system cannot provide reliable answers when the required information is absent from the indexed documents.
+* FAISS provides efficient similarity search but does not provide the advanced filtering and management capabilities of a full production vector database.
+* Retrieval quality depends on the quality of the document chunks and embeddings.
+* The current evaluation uses a custom heuristic evaluation methodology rather than a dedicated framework such as RAGAS.
+* Completeness remains an area for improvement, with the current evaluation achieving **66.30%**.
+* The system currently uses a lightweight embedding model and a single LLM configuration.
+* The source documents are demonstration documents and should be replaced with authorized enterprise documents for real-world deployment.
 
 ---
 
 ## 🔮 Future Improvements
 
-- 🔐 Enterprise authentication
-- 👥 Role-based access control
-- 🗄️ Production vector database
-- 📊 Admin dashboard
-- 📝 PDF support
-- 📑 Additional document formats
-- 💾 Conversation persistence
-- 📈 RAG evaluation metrics
-- 🔍 Hybrid search
-- 🧠 Reranking models
-- ☁️ Cloud deployment
-- 🔄 Automatic document ingestion
-- 📌 Document version management
-- 🔒 Enterprise-level data security
+The project can be further enhanced with the following improvements:
+
+* Add document upload and automatic indexing through the Streamlit interface.
+* Introduce more advanced metadata filtering and multi-document filtering for targeted retrieval.
+* Add a reranking stage to improve retrieval precision.
+* Experiment with advanced chunking strategies and adaptive chunk sizes.
+* Improve completeness through better context selection and retrieval.
+* Integrate a dedicated RAG evaluation framework such as RAGAS.
+* Add conversational memory for multi-turn interactions.
+* Support larger enterprise document collections.
+* Add authentication and role-based access control.
+* Improve monitoring, logging, and production error handling.
+* Provide multilingual support for enterprise users.
+* Deploy the system using a scalable production architecture.
+
+These improvements would make the system more suitable for larger enterprise environments and production-scale document intelligence applications.
+
+---
+
+## 🛠️ Technologies Used
+
+| Category             | Technologies                          |
+| -------------------- | ------------------------------------- |
+| Programming Language | Python                                |
+| Document Processing  | Python, python-docx                   |
+| Embeddings           | Sentence Transformers                 |
+| Embedding Model      | `all-MiniLM-L6-v2`                    |
+| Vector Database      | FAISS                                 |
+| LLM                  | Google Gemini `gemini-3.5-flash-lite` |
+| RAG Pipeline         | Custom Python implementation          |
+| Web Application      | Streamlit                             |
+| Data Processing      | NumPy, Pandas                         |
+| Evaluation           | Custom RAG evaluation scripts         |
+| Development          | VS Code, Google Colab                 |
+| Version Control      | Git, GitHub                           |
+| Deployment           | Streamlit Community Cloud             |
+
+The system combines document processing, semantic embeddings, vector similarity search, retrieval-augmented generation, and a web-based interface into a complete enterprise document intelligence workflow.
 
 ---
 
 ## 📌 Project Status
 
-- ✅ Document ingestion
-- ✅ Embedding generation
-- ✅ FAISS vector search
-- ✅ RAG retrieval
-- ✅ Gemini generation
-- ✅ Source tracking
-- ✅ Document-specific filtering
-- ✅ Streamlit frontend
-- ✅ Document-specific pages
-- ✅ requirements.txt
-- 🔄 VS Code setup
-- 🔄 GitHub repository
-- 🔄 Deployment
+The Enterprise Document Intelligence & RAG Assistant is a completed end-to-end RAG application.
+
+* Document ingestion and processing completed
+* FAISS-based semantic retrieval implemented
+* Google Gemini LLM integration completed
+* Source attribution and hallucination handling implemented
+* 150-question RAG evaluation completed
+* Streamlit application deployed successfully
+* GitHub repository maintained with project documentation
 
 ---
 
-## 📜 License
+## 🧪 Evaluation Methodology
 
-This project is developed for educational and demonstration purposes.
+The evaluation was performed using a **custom Python-based heuristic evaluation pipeline** developed for this project.
+
+The reported **answer correctness, groundedness, and completeness metrics are custom evaluation scores and are not RAGAS scores**.
+
+For each question, the evaluation pipeline records:
+
+* User question
+* Expected answer/reference information
+* Expected source document
+* Retrieved document chunks
+* Retrieved source documents
+* Similarity/relevance scores
+* Generated answer
+* Answer correctness
+* Groundedness
+* Completeness
+* Source attribution
+* Unanswerable-question handling
+
+The evaluation dataset contains both answerable and intentionally unanswerable questions to evaluate the system's ability to retrieve relevant information and avoid unsupported responses.
+
+The evaluation was executed locally using the project's RAG pipeline without modifying the production vector store.
+
+---
+
+## 📊 Evaluation Files
+
+The `evaluation/` directory contains the complete RAG evaluation workflow and results.
+
+| File                                       | Purpose                                    |
+| ------------------------------------------ | ------------------------------------------ |
+| `RAG_Evaluation_Dataset_150_Questions.csv` | 150-question evaluation dataset            |
+| `RAG_Evaluation_Results_150.csv`           | Raw results generated by the RAG pipeline  |
+| `RAG_Quality_Evaluation_150.csv`           | Final quality evaluation results           |
+| `run_evaluation.py`                        | Executes the RAG evaluation                |
+| `evaluate_quality.py`                      | Calculates evaluation metrics              |
+| `chunking_experiment.py`                   | Compares different chunking configurations |
+| `chunking_experiment_results.csv`          | Results of the chunking experiment         |
+
+The evaluation files provide reproducible evidence of the system's retrieval and answer-generation performance.
+
+---
+
+## ⭐ Conclusion
+
+The Enterprise RAG Assistant demonstrates a complete end-to-end **Retrieval-Augmented Generation workflow** for enterprise document intelligence.
+
+The project combines document processing, semantic chunking, embedding generation, FAISS-based retrieval, similarity thresholding, prompt engineering, Google Gemini generation, source attribution, hallucination handling, evaluation, and Streamlit deployment into a single working application.
+
+The evaluation results demonstrate strong grounding and source attribution, while the identified completeness limitation provides a clear direction for future improvement.
