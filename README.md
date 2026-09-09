@@ -528,19 +528,39 @@ The deployed application provides the complete RAG workflow, including document 
 
 ## 📸 Screenshots & Demo
 
-The repository includes application screenshots demonstrating the main RAG workflow and user interface.
+The following screenshots demonstrate the deployed TechNova AI Enterprise Knowledge Assistant and its RAG workflow.
 
-Recommended screenshots for the project documentation include:
+### Main Application Interface
 
-1. Main Streamlit interface
-2. Successful question-answer interaction
-3. Retrieved sources and similarity scores
-4. Unanswerable-question response
-5. Deployed application
+![TechNova AI Enterprise Knowledge Assistant](docs/Screenshots/01_home_top.png)
 
-Screenshots are stored in the project documentation directory and can be viewed directly from the repository.
+### Application Features
 
----
+![Application Features](docs/Screenshots/02_home_features.png)
+
+### RAG Question Answering
+
+![Leave Policy RAG Query](docs/Screenshots/02_leave_policy_rag.png)
+
+### Retrieved Sources and Similarity Scores
+
+![Work From Home RAG Query](docs/Screenshots/03_wfh_policy_rag.png)
+
+### Multi-Document Retrieval
+
+![Multi-Document Query](docs/Screenshots/04_multidocument_query.png)
+
+### Unanswerable-Question Handling
+
+![Unanswerable Question Handling](docs/Screenshots/05_unanswerable_query.png)
+
+### IT Security Policy Query
+
+![IT Security Query](docs/Screenshots/06_it_security_query.png)
+
+### RAG Evaluation Results
+
+![RAG Evaluation Results](docs/Screenshots/screenshot_evaluation_results.png)
 
 ## 🔎 Source Attribution & Transparency
 
